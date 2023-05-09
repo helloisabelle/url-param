@@ -1,0 +1,26 @@
+body {
+  width: auto;
+  background-color: powderblue;
+  margin: 0px;
+}
+
+button {
+ margin: 5px;
+}
+
+input {
+ margin: 5px;
+}
+
+i {
+  padding: 5px;
+}
+
+.field {
+  white-space: nowrap;
+}
+
+p {
+  margin: 5px;
+  white-space: nowrap;
+}
