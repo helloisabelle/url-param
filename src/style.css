@@ -1,16 +1,42 @@
 body {
   width: auto;
   min-width: 300px;
-  background-color: powderblue;
+  background-color:	#e2eaf3;
   margin: 0px;
 }
 
+button:hover {
+  background-position: right center; /* change the direction of the change here */
+}
+
 button {
+  flex: 1 1 auto;
+  text-align: center;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;
+ /* text-shadow: 0px 0px 10px rgba(0,0,0,0.2);*/
   margin: 5px;
+  border: none;
+  border-radius: 2px;
+}
+
+#add {
+  background-image: linear-gradient(to right, #66b3ff 0%, #3399ff 51%, #80bfff 100%);
+}
+
+#update {
+  background-image: linear-gradient(to right, #8cd98c 0%, #40bf80 51%, #66cc99 100%);
+}
+
+.remove {
+  background-image: linear-gradient(to right, #b3b3cc 0%, #9494b8 51%, #666699 100%);
 }
 
 input {
   margin: 5px;
+  border: 1px solid #3973ac;
+  border-radius: 2px;
 }
 
 i {
