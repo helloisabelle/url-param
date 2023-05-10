@@ -1,4 +1,4 @@
-
+let span_count = 0;
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   const activeTab = tabs[0];
   const urlParams = new URLSearchParams(activeTab.url);
@@ -12,7 +12,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         addField(entry[0].split('?').pop(), entry[1]);
       } else addNotFoundMessage();
     } else addField(entry[0], entry[1]);
-    if (i == 1) break;
   }
 });
 
@@ -29,7 +28,6 @@ document.getElementById("add").addEventListener('click', () => {
   if (document.getElementById('not_found') !== null) {
     document.getElementById('not_found').remove();
   }
-
   addField("", "");
 });
 
@@ -69,7 +67,9 @@ function addUpdateButton(){
 
 function addField(key, value){
   let span = document.createElement("span");
+  let save_count = span_count;
   span.setAttribute("class", "field");
+  span.setAttribute("id", "span_" + span_count);
 
   let key_field = document.createElement("input");
   key_field.setAttribute("type", "text");
@@ -80,7 +80,7 @@ function addField(key, value){
   value_field.setAttribute("value", value);
 
   let remove = document.createElement("button");
-  remove.setAttribute("id", "delete");
+  remove.setAttribute("id", "delete_" + span_count);
   remove.setAttribute("class", "remove");
 
   let trash = document.createElement("i");
@@ -91,6 +91,14 @@ function addField(key, value){
   span.appendChild(document.createTextNode(" = "));
   span.appendChild(value_field);
   span.appendChild(remove);
-
   div.appendChild(span);
+
+  document.getElementById("delete_" + save_count).addEventListener('click', () => {
+    let span_id = "span_" + save_count;
+    document.getElementById(span_id).remove();
+    const elements = document.querySelectorAll('input[type="text"]');
+    if (elements.length == 0) addNotFoundMessage();
+  });
+
+  ++span_count;
 }
