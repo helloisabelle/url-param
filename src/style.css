@@ -1,26 +1,38 @@
 body {
   width: auto;
+  min-width: 150px;
   background-color: powderblue;
   margin: 0px;
 }
 
 button {
- margin: 5px;
+  margin: 5px;
 }
 
 input {
- margin: 5px;
+  margin: 5px;
 }
 
 i {
   padding: 5px;
 }
 
+.fa-trash-o {
+  padding: 0px;
+}
+
 .field {
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove {
+  padding: 0px;
+  height: 20px;
+  width: 20px;
 }
 
 p {
   margin: 5px;
-  white-space: nowrap;
 }
