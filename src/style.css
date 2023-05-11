@@ -6,7 +6,7 @@ body {
 }
 
 button:hover {
-  background-position: right center; /* change the direction of the change here */
+  background-position: right center;
 }
 
 input[type=checkbox] {
@@ -19,7 +19,6 @@ button {
   transition: 0.5s;
   background-size: 200% auto;
   color: white;
- /* text-shadow: 0px 0px 10px rgba(0,0,0,0.2);*/
   margin: 5px;
   border: none;
   border-radius: 2px;

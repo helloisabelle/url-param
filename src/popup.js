@@ -72,9 +72,7 @@ function addUpdateButton(){
 
 
 function addField(key, value){
-
   if (document.getElementById("update") == null) addUpdateButton();
-
 
   let span = document.createElement("span");
   let save_count = span_count;
