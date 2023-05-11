@@ -9,6 +9,10 @@ button:hover {
   background-position: right center; /* change the direction of the change here */
 }
 
+input[type=checkbox] {
+  transform: scale(1.25);
+}
+
 button {
   flex: 1 1 auto;
   text-align: center;
@@ -55,8 +59,8 @@ i {
 
 .remove {
   padding: 0px;
-  height: 20px;
-  width: 20px;
+  height: 17px;
+  width: 17px;
 }
 
 p {
