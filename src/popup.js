@@ -157,14 +157,19 @@ function addPathSegment(value, source = 'path', isFirstHash = false) {
   removeBtn.setAttribute("class", "remove-btn");
   removeBtn.innerHTML = '<i class="fa fa-trash-o"></i>';
   removeBtn.addEventListener('click', () => {
-    document.getElementById("path_" + currentId).remove();
+    const el = document.getElementById("path_" + currentId);
+    if (!el) return;
+    removeRowWithShift(el, '#path-container');
   });
   
+  // prepare entry animation, append, then trigger it
+  segment.classList.add('new');
   segment.appendChild(slashSpan);
   segment.appendChild(input);
   segment.appendChild(check);
   segment.appendChild(removeBtn);
   pathContainer.appendChild(segment);
+  requestAnimationFrame(() => { segment.classList.remove('new'); });
 }
 
 function addParamField(key, value) {
@@ -204,15 +209,20 @@ function addParamField(key, value) {
   removeBtn.setAttribute("class", "remove-btn");
   removeBtn.innerHTML = '<i class="fa fa-trash-o"></i>';
   removeBtn.addEventListener('click', () => {
-    document.getElementById("param_" + currentId).remove();
+    const el = document.getElementById("param_" + currentId);
+    if (!el) return;
+    removeRowWithShift(el, '#param-container');
   });
   
+  // prepare entry animation, append, then trigger it
+  paramItem.classList.add('new');
   paramItem.appendChild(keyInput);
   paramItem.appendChild(equalsSpan);
   paramItem.appendChild(valueInput);
   paramItem.appendChild(check);
   paramItem.appendChild(removeBtn);
   paramContainer.appendChild(paramItem);
+  requestAnimationFrame(() => { paramItem.classList.remove('new'); });
 }
 
 function updateUrl() {
@@ -277,6 +287,65 @@ function updateUrl() {
     
     chrome.tabs.update(undefined, { url: newUrl });
   });
+}
+
+// FLIP-style remove: animate removed row, then shift siblings smoothly into place
+function removeRowWithShift(el, containerSelector) {
+  const container = document.querySelector(containerSelector);
+  if (!container || !el) {
+    if (el) el.remove();
+    return;
+  }
+
+  // capture initial positions of all items in the container
+  const items = Array.from(container.children);
+  const initialRects = new Map();
+  items.forEach(item => {
+    initialRects.set(item.id, item.getBoundingClientRect());
+  });
+
+  // play remove animation on the target
+  el.classList.add('removing');
+
+  // wait for the remove animation to finish (match CSS: 180-200ms)
+  const REMOVE_MS = 200;
+  setTimeout(() => {
+    // remove element from DOM
+    el.remove();
+
+    // capture new positions
+    const newItems = Array.from(container.children);
+    const newRects = new Map();
+    newItems.forEach(item => {
+      newRects.set(item.id, item.getBoundingClientRect());
+    });
+
+    // apply inverse transform to each remaining item to keep visual position
+    newItems.forEach(item => {
+      const id = item.id;
+      const before = initialRects.get(id);
+      const after = newRects.get(id);
+      if (!before || !after) return;
+      const deltaY = before.top - after.top;
+      if (deltaY === 0) return;
+      // temporarily disable transitions and set transform
+      item.style.transition = 'none';
+      item.style.transform = `translateY(${deltaY}px)`;
+      // force reflow
+      void item.offsetWidth;
+      // animate to new position
+      item.style.transition = 'transform 220ms ease';
+      item.style.transform = '';
+      // cleanup after transition
+      const onEnd = (ev) => {
+        if (ev.propertyName !== 'transform') return;
+        item.style.transition = '';
+        item.style.transform = '';
+        item.removeEventListener('transitionend', onEnd);
+      };
+      item.addEventListener('transitionend', onEnd);
+    });
+  }, REMOVE_MS);
 }
 
 function addUpdateButton() {

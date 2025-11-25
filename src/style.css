@@ -119,6 +119,22 @@ body {
   transition: all 0.2s ease;
 }
 
+/* removal animation */
+.segment-item.removing,
+.param-item.removing {
+  opacity: 0;
+  transform: translateX(12px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+/* entry animation for newly added rows */
+.segment-item.new,
+.param-item.new {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
 /* Ensure children can shrink and long text is ellipsized */
 .segment-item, .param-item {
   min-width: 0;
