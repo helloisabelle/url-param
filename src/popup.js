@@ -1,130 +1,293 @@
-let span_count = 0;
+let paramCount = 0;
+let pathCount = 0;
+
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   const activeTab = tabs[0];
-  const urlParams = new URLSearchParams(activeTab.url);
-  entries = urlParams.entries();
-
-  let i = 0;
-  for (const entry of entries) {
-    if (i++ == 0) {
-      if (entry[0].includes('?')) {
-        addUpdateButton();
-        addField(entry[0].split('?').pop(), entry[1]);
-      } else addNotFoundMessage();
-    } else addField(entry[0], entry[1]);
-  }
-});
-
-let div = document.getElementById("main");
-
-function addNotFoundMessage(){
-  let p = document.createElement("p");
-  p.setAttribute("id", "not_found");
-  p.appendChild(document.createTextNode("No URL params found!"));
-  div.appendChild(p);
-}
-
-document.getElementById("add").addEventListener('click', () => {
-  if (document.getElementById('not_found') !== null) {
-    document.getElementById('not_found').remove();
-  }
-  addField("", "");
-});
-
-function addUpdateButton(){
-  let toolbar = document.getElementById("toolbar");
-  let button = document.createElement("button");
-  button.setAttribute("id", "update");
-
-  let icon = document.createElement("i");
-  icon.setAttribute("class", "fa fa-refresh");
-
-  button.appendChild(icon);
-  button.appendChild(document.createTextNode("Update"));
-
-  toolbar.appendChild(button);
-
-  document.getElementById("update").addEventListener('click', () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      const activeTab = tabs[0];
-      const urlParams = new URLSearchParams(activeTab.url);
-      const entries = urlParams.entries();
-      let newUrl = "";
-
-      const [first] = entries;
-      newUrl += first[0].split('?')[0];
-
-      const elements = document.querySelectorAll('input[type="text"]');
-      if (elements.length != 0) newUrl += '?';
-      let flag = 0;
-      for (let i = 0; i < elements.length; i += 2) {
-        if (!elements[i].hasAttribute("disabled")) {
-          if (flag > 0) newUrl += "&";
-          ++flag;
-          newUrl += elements[i].value + "=" + elements[i + 1].value;
-        }
-
-      }
-      chrome.tabs.update(undefined, { url: newUrl });
-    });
-  });
-}
-
-
-function addField(key, value){
-  if (document.getElementById("update") == null) addUpdateButton();
-
-  let span = document.createElement("span");
-  let save_count = span_count;
-  span.setAttribute("class", "field");
-  span.setAttribute("id", "span_" + span_count);
-
-  let key_field = document.createElement("input");
-  key_field.setAttribute("type", "text");
-  key_field.setAttribute("value", key);
-  key_field.setAttribute("id", "key_" + span_count);
-
-  let value_field = document.createElement("input");
-  value_field.setAttribute("type", "text");
-  value_field.setAttribute("value", value);
-  value_field.setAttribute("id", "value_" + span_count);
-
-  let remove = document.createElement("button");
-  remove.setAttribute("id", "delete_" + span_count);
-  remove.setAttribute("class", "remove");
-
-  let checkbox = document.createElement("input");
-  checkbox.setAttribute("type", "checkbox");
-  checkbox.setAttribute("id", "check_" + save_count);
-  checkbox.setAttribute("checked", true);
-
-  let trash = document.createElement("i");
-  trash.setAttribute("class", "fa fa-trash-o");
-  remove.appendChild(trash);
-
-  span.appendChild(key_field);
-  span.appendChild(document.createTextNode(" = "));
-  span.appendChild(value_field);
-  span.appendChild(checkbox);
-  span.appendChild(remove);
-  div.appendChild(span);
-
-  document.getElementById("delete_" + save_count).addEventListener('click', () => {
-    let span_id = "span_" + save_count;
-    document.getElementById(span_id).remove();
-    const elements = document.querySelectorAll('input[type="text"]');
-    if (elements.length == 0) addNotFoundMessage();
+  const url = new URL(activeTab.url);
+  
+  // Display protocol and hostname
+  displayProtocolAndHost(url.protocol, url.hostname, url.port);
+  
+  // Display path segments
+  const pathSegments = url.pathname.split('/').filter(segment => segment !== '');
+  pathSegments.forEach(segment => {
+    addPathSegment(segment, 'path');
   });
 
-  document.getElementById("check_" + save_count).addEventListener('change', function() {
-    if (this.checked) {
-      document.getElementById("key_" + save_count).removeAttribute("disabled");
-      document.getElementById("value_" + save_count).removeAttribute("disabled");
-    } else {
-      document.getElementById("key_" + save_count).setAttribute("disabled", true);
-      document.getElementById("value_" + save_count).setAttribute("disabled", true);
+  // Display hash (fragment) segments (e.g. Gmail uses #inbox/...)
+  if (url.hash) {
+    const hashPath = url.hash.replace(/^#\/?/, ''); // remove leading # or #/
+    if (hashPath) {
+      const hashSegments = hashPath.split('/').filter(segment => segment !== '');
+      hashSegments.forEach((segment, idx) => {
+        addPathSegment(segment, 'hash', idx === 0);
+      });
     }
-  });
+  }
 
-  ++span_count;
+  // Display URL parameters
+  const params = Array.from(url.searchParams.entries());
+  if (params.length > 0) {
+    params.forEach(([key, value]) => {
+      addParamField(key, value);
+    });
+  }
+  
+  // Add update button
+  addUpdateButton();
+});
+
+const mainDiv = document.getElementById("main");
+
+function displayProtocolAndHost(protocol, hostname, port) {
+  const urlBaseDiv = document.createElement("div");
+  urlBaseDiv.setAttribute("class", "url-base");
+  urlBaseDiv.setAttribute("id", "url-base");
+  
+  const protocolSpan = document.createElement("span");
+  protocolSpan.setAttribute("class", "protocol");
+  protocolSpan.textContent = protocol + "//";
+  
+  const hostnameInput = document.createElement("input");
+  hostnameInput.setAttribute("type", "text");
+  hostnameInput.setAttribute("value", hostname);
+  hostnameInput.setAttribute("id", "hostname");
+  hostnameInput.setAttribute("class", "hostname-input");
+  
+  urlBaseDiv.appendChild(protocolSpan);
+  urlBaseDiv.appendChild(hostnameInput);
+  
+  if (port) {
+    const portSpan = document.createElement("span");
+    portSpan.textContent = ":";
+    const portInput = document.createElement("input");
+    portInput.setAttribute("type", "text");
+    portInput.setAttribute("value", port);
+    portInput.setAttribute("id", "port");
+    portInput.setAttribute("class", "port-input");
+    urlBaseDiv.appendChild(portSpan);
+    urlBaseDiv.appendChild(portInput);
+  }
+
+  // allow Enter on hostname/port to update
+  hostnameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') updateUrl(); });
+  if (port) portInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') updateUrl(); });
+  
+  mainDiv.appendChild(urlBaseDiv);
+  
+  // Path section header + inline Add button
+  const pathHeader = document.createElement("div");
+  pathHeader.setAttribute("class", "section-header");
+  pathHeader.textContent = "Path Segments";
+
+  const addPathBtn = document.createElement("button");
+  addPathBtn.setAttribute("class", "add-btn");
+  addPathBtn.setAttribute("id", "add-path");
+  addPathBtn.innerHTML = '<i class="fa fa-plus"></i> Add field';
+  addPathBtn.addEventListener('click', () => addPathSegment("", 'path'));
+
+  const pathRow = document.createElement("div");
+  pathRow.setAttribute("class", "section-row");
+  pathRow.appendChild(pathHeader);
+  pathRow.appendChild(addPathBtn);
+  mainDiv.appendChild(pathRow);
+
+  const pathContainer = document.createElement("div");
+  pathContainer.setAttribute("id", "path-container");
+  pathContainer.setAttribute("class", "segment-container");
+  mainDiv.appendChild(pathContainer);
+  
+  // Params section header + inline Add button
+  const paramHeader = document.createElement("div");
+  paramHeader.setAttribute("class", "section-header");
+  paramHeader.textContent = "URL Parameters";
+
+  const addParamBtn = document.createElement("button");
+  addParamBtn.setAttribute("class", "add-btn");
+  addParamBtn.setAttribute("id", "add-param");
+  addParamBtn.innerHTML = '<i class="fa fa-plus"></i> Add field';
+  addParamBtn.addEventListener('click', () => addParamField("", ""));
+
+  const paramRow = document.createElement("div");
+  paramRow.setAttribute("class", "section-row");
+  paramRow.appendChild(paramHeader);
+  paramRow.appendChild(addParamBtn);
+  mainDiv.appendChild(paramRow);
+
+  const paramContainer = document.createElement("div");
+  paramContainer.setAttribute("id", "param-container");
+  paramContainer.setAttribute("class", "segment-container");
+  mainDiv.appendChild(paramContainer);
+}
+
+function addPathSegment(value, source = 'path', isFirstHash = false) {
+  const pathContainer = document.getElementById("path-container");
+  const currentId = pathCount++;
+  
+  const segment = document.createElement("div");
+  segment.setAttribute("class", "segment-item");
+  segment.setAttribute("id", "path_" + currentId);
+  segment.dataset.source = source; // mark origin ('path' or 'hash')
+  
+  const slashSpan = document.createElement("span");
+  slashSpan.setAttribute("class", "slash");
+  // always show a slash icon; the first hash will include '#' in the input value instead
+  slashSpan.textContent = "/";
+
+  // checkbox to include/exclude this segment when updating (placed before trash)
+  const check = document.createElement('input');
+  check.setAttribute('type', 'checkbox');
+  check.setAttribute('class', 'segment-check');
+  check.checked = true;
+  check.style.marginLeft = '8px';
+  
+  const input = document.createElement("input");
+  input.setAttribute("type", "text");
+  // if this is the first hash segment, show '#' inside the input value (not as separate icon)
+  const displayValue = (source === 'hash' && isFirstHash)
+    ? (value && value.startsWith('#') ? value : ('#' + value))
+    : value;
+  input.setAttribute("value", displayValue);
+  input.setAttribute("class", "segment-input");
+
+  // Enter key triggers update
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') updateUrl(); });
+  
+  const removeBtn = document.createElement("button");
+  removeBtn.setAttribute("class", "remove-btn");
+  removeBtn.innerHTML = '<i class="fa fa-trash-o"></i>';
+  removeBtn.addEventListener('click', () => {
+    document.getElementById("path_" + currentId).remove();
+  });
+  
+  segment.appendChild(slashSpan);
+  segment.appendChild(input);
+  segment.appendChild(check);
+  segment.appendChild(removeBtn);
+  pathContainer.appendChild(segment);
+}
+
+function addParamField(key, value) {
+  const paramContainer = document.getElementById("param-container");
+  const currentId = paramCount++;
+  
+  const paramItem = document.createElement("div");
+  paramItem.setAttribute("class", "param-item");
+  paramItem.setAttribute("id", "param_" + currentId);
+  
+  const keyInput = document.createElement("input");
+  keyInput.setAttribute("type", "text");
+  keyInput.setAttribute("value", key);
+  keyInput.setAttribute("placeholder", "key");
+  keyInput.setAttribute("class", "param-key");
+  keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') updateUrl(); });
+  
+  const equalsSpan = document.createElement("span");
+  equalsSpan.setAttribute("class", "equals");
+  equalsSpan.textContent = "=";
+  
+  const valueInput = document.createElement("input");
+  valueInput.setAttribute("type", "text");
+  valueInput.setAttribute("value", value);
+  valueInput.setAttribute("placeholder", "value");
+  valueInput.setAttribute("class", "param-value");
+  valueInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') updateUrl(); });
+
+  // checkbox to include/exclude this parameter when updating (placed before trash)
+  const check = document.createElement('input');
+  check.setAttribute('type', 'checkbox');
+  check.setAttribute('class', 'param-check');
+  check.checked = true;
+  check.style.marginLeft = '8px';
+  
+  const removeBtn = document.createElement("button");
+  removeBtn.setAttribute("class", "remove-btn");
+  removeBtn.innerHTML = '<i class="fa fa-trash-o"></i>';
+  removeBtn.addEventListener('click', () => {
+    document.getElementById("param_" + currentId).remove();
+  });
+  
+  paramItem.appendChild(keyInput);
+  paramItem.appendChild(equalsSpan);
+  paramItem.appendChild(valueInput);
+  paramItem.appendChild(check);
+  paramItem.appendChild(removeBtn);
+  paramContainer.appendChild(paramItem);
+}
+
+function updateUrl() {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    const activeTab = tabs[0];
+    const currentUrl = new URL(activeTab.url);
+    
+    // Build new URL
+    let newUrl = currentUrl.protocol + "//";
+    
+    // Add hostname
+    const hostname = document.getElementById("hostname").value;
+    newUrl += hostname;
+    
+    // Add port if exists
+    const portInput = document.getElementById("port");
+    if (portInput && portInput.value) {
+      newUrl += ":" + portInput.value;
+    }
+    
+    // Add path segments (only those marked as 'path') and collect hash segments
+    const allPathItems = Array.from(document.querySelectorAll("#path-container .segment-item"));
+    const pathParts = [];
+    const hashParts = [];
+    allPathItems.forEach(item => {
+      const checkbox = item.querySelector('.segment-check');
+      if (checkbox && !checkbox.checked) return; // skip unchecked
+      const input = item.querySelector('.segment-input');
+      const source = (item.dataset && item.dataset.source) || 'path';
+      let val = input.value.trim();
+      if (val === '') return;
+      if (source === 'hash') val = val.replace(/^#/, '');
+      if (val === '') return;
+      if (source === 'path') pathParts.push(val);
+      else if (source === 'hash') hashParts.push(val);
+    });
+    pathParts.forEach(p => { newUrl += '/' + p; });
+    
+    // Add parameters (only those with checkbox checked)
+    const paramItems = Array.from(document.querySelectorAll("#param-container .param-item"));
+    const params = [];
+    paramItems.forEach(item => {
+      const checkbox = item.querySelector('.param-check');
+      if (checkbox && !checkbox.checked) return;
+      const keyInput = item.querySelector(".param-key");
+      const valueInput = item.querySelector(".param-value");
+      if (keyInput.value.trim() !== "") {
+        params.push(keyInput.value.trim() + "=" + encodeURIComponent(valueInput.value));
+      }
+    });
+    
+    if (params.length > 0) {
+      newUrl += "?" + params.join("&");
+    }
+    
+    // Rebuild hash from hash-origin segments, or preserve existing hash
+    if (hashParts.length > 0) {
+      newUrl += '#' + hashParts.join('/');
+    } else if (currentUrl.hash) {
+      newUrl += currentUrl.hash;
+    }
+    
+    chrome.tabs.update(undefined, { url: newUrl });
+  });
+}
+
+function addUpdateButton() {
+  const updateBtn = document.createElement("button");
+  updateBtn.setAttribute("id", "update-btn");
+  updateBtn.setAttribute("class", "update-btn");
+  updateBtn.innerHTML = '<i class="fa fa-refresh"></i> Update';
+  
+  updateBtn.addEventListener('click', () => {
+    updateUrl();
+  });
+  
+  mainDiv.appendChild(updateBtn);
 }
