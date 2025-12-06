@@ -1,9 +1,9 @@
 {
   "name": "URL Editor",
   "description": "Edit URLs with ease!",
-  "version": "2.1",
+  "version": "2.3",
   "manifest_version": 3,
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["activeTab"],
   "action": {
     "default_popup": "index.html",
     "default_icon": "img/icon_128.png"

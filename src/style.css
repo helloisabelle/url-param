@@ -116,7 +116,7 @@ body {
   border-radius: 6px;
   border: 1px solid #e0e6ed;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: opacity 500ms ease, transform 500ms ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* removal animation */
@@ -131,9 +131,10 @@ body {
 .segment-item.new,
 .param-item.new {
   opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity 500ms ease, transform 500ms ease;
+  transform: translateY(2px);
+  animation: slideInFromTop 300ms ease;
 }
+
 
 /* Ensure children can shrink and long text is ellipsized */
 .segment-item, .param-item {

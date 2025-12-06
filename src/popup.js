@@ -162,14 +162,17 @@ function addPathSegment(value, source = 'path', isFirstHash = false) {
     removeRowWithShift(el, '#path-container');
   });
   
-  // prepare entry animation, append, then trigger it
+  // prepare entry animation, insert at top, then trigger it
   segment.classList.add('new');
   segment.appendChild(slashSpan);
   segment.appendChild(input);
   segment.appendChild(check);
   segment.appendChild(removeBtn);
-  pathContainer.appendChild(segment);
-  requestAnimationFrame(() => { segment.classList.remove('new'); });
+  pathContainer.insertBefore(segment, pathContainer.firstChild);
+  // trigger the animation by removing the class
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { segment.classList.remove('new'); });
+  });
 }
 
 function addParamField(key, value) {
@@ -214,15 +217,18 @@ function addParamField(key, value) {
     removeRowWithShift(el, '#param-container');
   });
   
-  // prepare entry animation, append, then trigger it
+  // prepare entry animation, insert at top, then trigger it
   paramItem.classList.add('new');
   paramItem.appendChild(keyInput);
   paramItem.appendChild(equalsSpan);
   paramItem.appendChild(valueInput);
   paramItem.appendChild(check);
   paramItem.appendChild(removeBtn);
-  paramContainer.appendChild(paramItem);
-  requestAnimationFrame(() => { paramItem.classList.remove('new'); });
+  paramContainer.insertBefore(paramItem, paramContainer.firstChild);
+  // trigger the animation by removing the class
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { paramItem.classList.remove('new'); });
+  });
 }
 
 function updateUrl() {
