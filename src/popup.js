@@ -125,7 +125,8 @@ function addPathSegment(value, source = 'path', isFirstHash = false) {
   const currentId = pathCount++;
   
   const segment = document.createElement("div");
-  segment.setAttribute("class", "segment-item");
+  const isUserAdded = value === '';
+  segment.setAttribute("class", isUserAdded ? "segment-item" : "segment-item initial-load");
   segment.setAttribute("id", "path_" + currentId);
   segment.dataset.source = source; // mark origin ('path' or 'hash')
   
@@ -162,8 +163,10 @@ function addPathSegment(value, source = 'path', isFirstHash = false) {
     removeRowWithShift(el, '#path-container');
   });
   
-  // prepare entry animation, insert at top, then trigger it
-  segment.classList.add('new');
+  // only animate if user-added
+  if (isUserAdded) {
+    segment.classList.add('new');
+  }
   segment.appendChild(slashSpan);
   segment.appendChild(input);
   segment.appendChild(check);
@@ -180,7 +183,8 @@ function addParamField(key, value) {
   const currentId = paramCount++;
   
   const paramItem = document.createElement("div");
-  paramItem.setAttribute("class", "param-item");
+  const isUserAdded = key === "" && value === "";
+  paramItem.setAttribute("class", isUserAdded ? "param-item" : "param-item initial-load");
   paramItem.setAttribute("id", "param_" + currentId);
   
   const keyInput = document.createElement("input");
@@ -217,8 +221,10 @@ function addParamField(key, value) {
     removeRowWithShift(el, '#param-container');
   });
   
-  // prepare entry animation, insert at top, then trigger it
-  paramItem.classList.add('new');
+  // only animate if user-added
+  if (isUserAdded) {
+    paramItem.classList.add('new');
+  }
   paramItem.appendChild(keyInput);
   paramItem.appendChild(equalsSpan);
   paramItem.appendChild(valueInput);

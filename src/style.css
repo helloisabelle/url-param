@@ -119,6 +119,12 @@ body {
   transition: opacity 500ms ease, transform 500ms ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.segment-item.initial-load,
+.param-item.initial-load {
+  opacity: 1;
+  transition: none;
+}
+
 /* removal animation */
 .segment-item.removing,
 .param-item.removing {
